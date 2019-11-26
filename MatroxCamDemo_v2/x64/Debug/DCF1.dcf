@@ -1,0 +1,28 @@
+/Matrox Electronic Systems Ltd.
+/Copyright 1996.
+/
+/Continuous progressive Generic CXP LineScan camera
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+[CAMERA_NAME]
+Generic
+[CONFIG_FILE]
+50CF
+RADIENTCXP
+Tue Jun 06 15:37:24 2008
+[INFO_FILE_REV]
+0009.0013.0000
+RADIENTCXP
+[REG_DIGIT]
+INFO_TYPE                                  0x1
+[EOF]
