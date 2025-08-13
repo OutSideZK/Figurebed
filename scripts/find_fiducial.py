@@ -1,6 +1,7 @@
 import argparse
 import json
 import math
+import os
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -198,6 +199,14 @@ def draw_results(src_gray: np.ndarray, fiducials: List[Fiducial]) -> np.ndarray:
     return color
 
 
+def ensure_parent_dir(path: str):
+    if not path:
+        return
+    d = os.path.dirname(path)
+    if d:
+        os.makedirs(d, exist_ok=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--image", "-i", required=True, help="Path to image (e.g., image/fiducial.tif)")
@@ -233,10 +242,12 @@ def main():
     vis = draw_results(img_u8, fiducials)
 
     if args.save:
+        ensure_parent_dir(args.save)
         cv2.imwrite(args.save, vis)
         print(f"Saved visualization to {args.save}")
 
     if args.json_out:
+        ensure_parent_dir(args.json_out)
         data = [
             {"center_x": f.center[0], "center_y": f.center[1], "radius": f.radius, "score": round(f.score, 6)}
             for f in fiducials

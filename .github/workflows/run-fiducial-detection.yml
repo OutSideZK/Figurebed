@@ -3,7 +3,12 @@ name: Detect fiducial
 on:
   push:
     branches:
-      - feat/fiducial-detect-run
+      - '**'
+    paths:
+      - image/fiducial.tif
+      - scripts/find_fiducial.py
+      - .github/workflows/run-fiducial-detection.yml
+  pull_request:
     paths:
       - image/fiducial.tif
       - scripts/find_fiducial.py
@@ -19,11 +24,15 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -54,12 +63,23 @@ jobs:
           name: fiducial-results
           path: outputs/
 
-      - name: Commit outputs back to branch
+      - name: Commit outputs back to branch (best-effort)
+        continue-on-error: true
+        env:
+          TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           if [ -n "$(git status --porcelain outputs)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add outputs
-            git commit -m "ci: add fiducial detection outputs"
-            git push
+            if git diff --cached --quiet; then
+              echo "No changes to commit in outputs/"
+            else
+              git commit -m "ci: add fiducial detection outputs [skip ci]"
+              echo "Attempting to push to ${TARGET_BRANCH}"
+              git push origin HEAD:${TARGET_BRANCH} || echo "Push failed (likely PR from fork or no write permission)."
+            fi
+          else
+            echo "No changes detected under outputs/."
           fi
